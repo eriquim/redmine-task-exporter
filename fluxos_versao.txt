@@ -1,0 +1,89 @@
+ ---- Todos Fluxos da releases ---- 
+1- Fluxos/1o Grau/CEJUSC/Analise Pré-Processual de Secretaria da CEJUSC em extensões.xml
+2- Fluxos/1o Grau/CEJUSC/Analise Pré-Processual de Secretaria da CEJUSC.xml
+3- Fluxos/1o Grau/CEJUSC/Análise Reclamação Pré-Processual de Secretaria da CEJUSC.xml
+4- Fluxos/1o Grau/CEJUSC/Análise de Secretaria do CEJUSC.xml
+5- Fluxos/1o Grau/CEJUSC/Encaminhamento para CEJUSC 1G.xml
+6- Fluxos/1o Grau/CEJUSC/Expedição de Outros Documentos em Extensões da CEJUSC.xml
+7- Fluxos/1o Grau/CEJUSC/Protocolo do CEJUSC.xml
+8- Fluxos/1o Grau/Custas/Geração de Termo de Solicitação de Débito na Dívida Ativa.xml
+9- Fluxos/1o Grau/Execução Fiscal/[EF] Preparar comunicação por outros meios.xml
+10- Fluxos/1o Grau/Execução Fiscal/[EF] Preparar comunicação via Carta Precatória.xml
+11- Fluxos/1o Grau/Execução Fiscal/[EF] Preparar comunicação via Carta Rogatória.xml
+12- Fluxos/1o Grau/Execução Fiscal/[EF] Preparar comunicação via Telefone ou Balcão.xml
+13- Fluxos/1o Grau/Execução Fiscal/[EF] Preparação de atos judiciais - Secretaria.xml
+14- Fluxos/1o Grau/Família/Preparação de Ato Judicial Genérico - Família.xml
+15- Fluxos/1o Grau/Geral/Análise de Ato Judicial Proferido.xml
+16- Fluxos/1o Grau/Geral/Análise de Transitado em Julgado.xml
+17- Fluxos/1o Grau/Geral/Cancelamento de Audiência.xml
+18- Fluxos/1o Grau/Geral/Certificação de Decurso de Prazo.xml
+19- Fluxos/1o Grau/Geral/Certificação de Trânsito em Julgado.xml
+20- Fluxos/1o Grau/Geral/Controle de Visualização de Processos em Sigilo e Segredo.xml
+21- Fluxos/1o Grau/Geral/Conversão de Audiência em diligência.xml
+22- Fluxos/1o Grau/Geral/Designação de Audiência.xml
+23- Fluxos/1o Grau/Geral/Encaminhamento para Fluxo de Análise.xml
+24- Fluxos/1o Grau/Geral/Encaminhamento para SEJUD 1G.xml
+25- Fluxos/1o Grau/Geral/Envio para os Correios.xml
+26- Fluxos/1o Grau/Geral/Expedição de Ato Ordinatório.xml
+27- Fluxos/1o Grau/Geral/Expedição de Mandado para Cartório.xml
+28- Fluxos/1o Grau/Geral/Expedição de Mandado.xml
+29- Fluxos/1o Grau/Geral/Gerenciamento de Audiências.xml
+30- Fluxos/1o Grau/Geral/Inicialização de Fluxo de Saída.xml
+31- Fluxos/1o Grau/Geral/Operação de Audiência.xml
+32- Fluxos/1o Grau/Geral/PAC - Citação e (ou) Intimação.xml
+33- Fluxos/1o Grau/Geral/PAC - Intimação de Audiência.xml
+34- Fluxos/1o Grau/Geral/Preparação Padrão de Ato Judicial de Decisão.xml
+35- Fluxos/1o Grau/Geral/Preparação Padrão de Ato Judicial de Despacho.xml
+36- Fluxos/1o Grau/Geral/Preparação Padrão de Ato Judicial de Sentença.xml
+37- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Análise de Prevenção.xml
+38- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Carta Precatória.xml
+39- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Cumprimento de Sentença.xml
+40- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão de Emb. de Declaração.xml
+41- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão de Suspensão ou Sobrestamento.xml
+42- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão de Urgência Inicial.xml
+43- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão de Urgência.xml
+44- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão sobre Reativação.xml
+45- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão sobre Recurso.xml
+46- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Decisão.xml
+47- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Despacho Inicial.xml
+48- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Despacho de Cumprimento de Sentença.xml
+49- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Despacho.xml
+50- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Regra Geral.xml
+51- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Sentença com Mérito.xml
+52- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Sentença de Homologação.xml
+53- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Sentença sem Mérito.xml
+54- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Sentença.xml
+55- Fluxos/1o Grau/Geral/Preparação de Ato Judicial de Solução de Embargos de Declaração.xml
+56- Fluxos/1o Grau/Geral/Preparação de Ato Judicial sobre Paradigma Julgado.xml
+57- Fluxos/1o Grau/Geral/Realização de Audiência.xml
+58- Fluxos/1o Grau/Geral/Redesignação de Audiência.xml
+59- Fluxos/1o Grau/Infância e Juventude/Preparação Padrão de Ato Judicial de Decisão - Seção de Cadastro de Adotantes e Adotandos.xml
+60- Fluxos/2o Grau/Certificação de Decurso de Prazo.xml
+61- Fluxos/2o Grau/Certificação de Interposição de Recurso.xml
+62- Fluxos/2o Grau/Certificação de Trânsito em Julgado.xml
+63- Fluxos/2o Grau/Emissão de Despacho Desimpedido de Pauta.xml
+64- Fluxos/2o Grau/Expedição de Outros Documentos.xml
+65- Fluxos/2o Grau/Preparação Ato Judicial de Decisão de Agravo Interno.xml
+66- Fluxos/2o Grau/Preparação de Ato Judicial Padrão Presidência.xml
+67- Fluxos/2o Grau/Preparação de Ato Judicial Padrão Vice Presidência.xml
+68- Fluxos/2o Grau/Preparação de Ato Judicial Sobre Pedido de Uniformização.xml
+69- Fluxos/2o Grau/Preparação de Ato Judicial de Análise de Prevenção.xml
+70- Fluxos/2o Grau/Preparação de Ato Judicial de Carta Precatória.xml
+71- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão da Presidência.xml
+72- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão de Emb. de Declaração.xml
+73- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão de Suspensão ou Sobrestamento.xml
+74- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão de Urgência Inicial.xml
+75- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão de Urgência.xml
+76- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão sobre Reativação.xml
+77- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão sobre Recurso.xml
+78- Fluxos/2o Grau/Preparação de Ato Judicial de Decisão.xml
+79- Fluxos/2o Grau/Preparação de Ato Judicial de Despacho Inicial.xml
+80- Fluxos/2o Grau/Preparação de Ato Judicial de Despacho da Presidência.xml
+81- Fluxos/2o Grau/Preparação de Ato Judicial de Despacho de Cumprimento de Sentença.xml
+82- Fluxos/2o Grau/Preparação de Ato Judicial de Despacho.xml
+83- Fluxos/2o Grau/Preparação de Ato Judicial de Regra Geral.xml
+84- Fluxos/2o Grau/Preparação de Ato Judicial de Solução de Embargos de Declaração.xml
+85- Fluxos/2o Grau/Preparação de Ato Judicial em Órgão Diverso.xml
+86- Fluxos/2o Grau/Preparação de Ato Judicial sobre Paradigma Julgado.xml
+87- Fluxos/2o Grau/Preparação para Julgamento Colegiado Geral.xml
+88- Fluxos/2o Grau/Realização de Audiência.xml
