@@ -15,14 +15,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import org.springframework.stereotype.Service;
+
 import br.jus.tjce.releasecontroller.Parametros;
 import br.jus.tjce.releasecontroller.redmine.dom.CustomField;
 import br.jus.tjce.releasecontroller.redmine.dom.Issue;
 import br.jus.tjce.releasecontroller.redmine.dom.IssueChild;
 import br.jus.tjce.releasecontroller.redmine.dom.User;
+import br.jus.tjce.releasecontroller.redmine.dom.Project;
+import br.jus.tjce.releasecontroller.redmine.dom.Tracker;
+import br.jus.tjce.releasecontroller.redmine.dom.ProjectsResponse;
+import br.jus.tjce.releasecontroller.redmine.dom.TrackersResponse;
 import br.jus.tjce.releasecontroller.util.StringUtil;
 
+@Service
 public class RedmineTaskService {
+	
+	
+	
+	
+	
 
 	public void imprimirTarefasApartirDoPai() {
 		try {
@@ -154,6 +166,10 @@ public class RedmineTaskService {
 	}
 
 	private <T> Optional<T> consumirEndPointRedmine(String urlString, Class<T> classe) throws IOException {
+		return consumirEndPointRedmine(urlString, classe, true);
+	}
+
+	private <T> Optional<T> consumirEndPointRedmine(String urlString, Class<T> classe, boolean unwrapRoot) throws IOException {
 		URL url = new URL(urlString);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
@@ -177,11 +193,146 @@ public class RedmineTaskService {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.registerModule(new JavaTimeModule());
 			mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-			mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
+			if (unwrapRoot) {
+				mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
+			} else {
+				mapper.disable(DeserializationFeature.UNWRAP_ROOT_VALUE);
+			}
 			T objeto = mapper.readValue(sb.toString(), classe);
 			return Optional.ofNullable(objeto);
 		} finally {
 			conn.disconnect();
+		}
+	}
+
+	public List<Issue> buscarTarefas(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
+		List<Issue> todasTarefas = new ArrayList<>();
+		try {
+			StringBuilder baseBuilder = new StringBuilder(Parametros.URL_BASE);
+			baseBuilder.append("/issues.json?status_id=*&limit=100");
+			
+			if (projetoId != null) {
+				baseBuilder.append("&project_id=").append(projetoId);
+			}
+			if (tipoId != null) {
+				baseBuilder.append("&tracker_id=").append(tipoId);
+			}
+			if (dataCriacaoInicio != null && dataCriacaoFim != null) {
+				baseBuilder.append("&created_on=%3E%3C").append(dataCriacaoInicio).append("|").append(dataCriacaoFim);
+			} else if (dataCriacaoInicio != null) {
+				baseBuilder.append("&created_on=%3E%3D").append(dataCriacaoInicio);
+			} else if (dataCriacaoFim != null) {
+				baseBuilder.append("&created_on=%3C%3D").append(dataCriacaoFim);
+			}
+
+			int offset = 0;
+			int limit = 100;
+			boolean hasMore = true;
+
+			while (hasMore) {
+				String urlStr = baseBuilder.toString() + "&offset=" + offset;
+				Optional<br.jus.tjce.releasecontroller.redmine.dom.IssuesResponse> response = consumirEndPointRedmine(urlStr, br.jus.tjce.releasecontroller.redmine.dom.IssuesResponse.class, false);
+				
+				if (response.isPresent() && response.get().getIssues() != null && !response.get().getIssues().isEmpty()) {
+					List<Issue> rec = response.get().getIssues();
+					todasTarefas.addAll(rec);
+					
+					if (rec.size() < limit) {
+						hasMore = false;
+					} else {
+						offset += limit;
+					}
+				} else {
+					hasMore = false;
+				}
+			}
+		} catch (IOException e) {
+			System.out.println("Erro ao buscar lista de tarefas");
+			e.printStackTrace();
+		}
+		return todasTarefas;
+	}
+
+	public List<Project> buscarProjetos() {
+		try {
+			String urlStr = Parametros.URL_BASE + "/projects.json?limit=10000000";
+			Optional<ProjectsResponse> response = consumirEndPointRedmine(urlStr, ProjectsResponse.class, false);
+			if (response.isPresent() && response.get().getProjects() != null) {
+				return response.get().getProjects();
+			}
+		} catch (IOException e) {
+			System.out.println("Erro ao buscar lista de projetos: " + e.getMessage());
+		}
+		return new ArrayList<>();
+	}
+
+	public List<Tracker> buscarTipos() {
+		try {
+			String urlStr = Parametros.URL_BASE + "/trackers.json";
+			Optional<TrackersResponse> response = consumirEndPointRedmine(urlStr, TrackersResponse.class, false);
+			if (response.isPresent() && response.get().getTrackers() != null) {
+				return response.get().getTrackers();
+			}
+		} catch (IOException e) {
+			System.out.println("Erro ao buscar lista de tipos (trackers): " + e.getMessage());
+		}
+		return new ArrayList<>();
+	}
+
+	public void imprimirBuscarTarefas(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+		for (Issue tarefa : tarefas) {
+			try {
+				String linha = gerarLinha(tarefa, 0);
+				if (linha != null) {
+					System.out.println(linha);
+				}
+			} catch (Exception e) {
+				System.out.println("Erro ao imprimir tarefa #" + tarefa.getId());
+			}
+		}
+	}
+
+	public void exportarTarefasParaCSV(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim, String caminhoArquivo) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+		try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(caminhoArquivo))) {
+			writer.println("ID;Projeto;Tracker;Status;Assunto;Data de Criação");
+			for (Issue tarefa : tarefas) {
+				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
+				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
+				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
+				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
+				String assunto = tarefa.getSubject() != null ? tarefa.getSubject().replace(";", ",") : "";
+				String dataCriacao = tarefa.getCreatedOn() != null ? tarefa.getCreatedOn().toString() : "";
+				writer.println(String.format("%s;%s;%s;%s;%s;%s", id, projeto, tracker, status, assunto, dataCriacao));
+			}
+			System.out.println("Arquivo CSV gerado com sucesso em: " + caminhoArquivo);
+		} catch (IOException e) {
+			System.out.println("Erro ao gerar arquivo CSV: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	public byte[] exportarTarefasParaCSVBytes(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+			 java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
+			
+			writer.println('\uFEFF' + "ID;Projeto;Tracker;Status;Assunto;Data de Criação"); // BOM for excel
+			for (Issue tarefa : tarefas) {
+				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
+				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
+				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
+				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
+				String assunto = tarefa.getSubject() != null ? tarefa.getSubject().replace(";", ",") : "";
+				String dataCriacao = tarefa.getCreatedOn() != null ? tarefa.getCreatedOn().toString() : "";
+				writer.println(String.format("%s;%s;%s;%s;%s;%s", id, projeto, tracker, status, assunto, dataCriacao));
+			}
+			writer.flush();
+			return out.toByteArray();
+		} catch (Exception e) {
+			System.out.println("Erro ao gerar arquivo CSV: " + e.getMessage());
+			e.printStackTrace();
+			return new byte[0];
 		}
 	}
 

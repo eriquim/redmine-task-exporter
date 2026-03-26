@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Base de Cálculo</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --table-header: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: var(--table-header);
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .json-preview {
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: monospace;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="/" class="back-link">&larr; Voltar para o Exportador</a>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div class="header">
+            <div>
+                <h1>Base de Cálculo</h1>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Gerencie os registros importados da planilha</p>
+            </div>
+            <a th:href="@{/base-calculo/new}" class="btn">+ Novo Registro</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="80">ID</th>
+                    <th>Dados (JSON)</th>
+                    <th width="150">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="r : ${registros}">
+                    <td th:text="${r.id}"></td>
+                    <td><div class="json-preview" th:text="${r.dados}"></div></td>
+                    <td>
+                        <div class="actions">
+                            <a th:href="@{/base-calculo/{id}/edit(id=${r.id})}" class="btn btn-small">Editar</a>
+                            <form th:action="@{/base-calculo/{id}/delete(id=${r.id})}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Tem certeza que deseja excluir?')">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(registros)}">
+                    <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Nenhum registro encontrado.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

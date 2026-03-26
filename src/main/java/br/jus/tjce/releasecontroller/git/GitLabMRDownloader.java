@@ -128,7 +128,7 @@ public class GitLabMRDownloader {
 
     private static JsonNode doGet(String urlStr) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-        conn.setRequestProperty("PRIVATE-TOKEN", Parametros.PRIVATE_TOKEN);
+       // conn.setRequestProperty("PRIVATE-TOKEN", Parametros.PRIVATE_TOKEN);
         conn.setRequestMethod("GET");
 
         try (InputStream in = conn.getInputStream()) {
@@ -138,7 +138,7 @@ public class GitLabMRDownloader {
 
     private static byte[] doGetBytes(String urlStr) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-        conn.setRequestProperty("PRIVATE-TOKEN", Parametros.PRIVATE_TOKEN);
+       // conn.setRequestProperty("PRIVATE-TOKEN", Parametros.PRIVATE_TOKEN);
         conn.setRequestMethod("GET");
 
         try (InputStream in = conn.getInputStream();
@@ -197,6 +197,3 @@ public class GitLabMRDownloader {
         }
     }
 }
-    
-}
-

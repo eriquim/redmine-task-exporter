@@ -11,7 +11,6 @@ public class Parametros {
 	
 	//Git
 	public static final String GITLAB_URL = "https://git.tjce.jus.br/api/v4";
-	//public static final String PRIVATE_TOKEN = "";
 	public static final String PROJECT_ID = "318"; // ID ou namespace codificado do projeto
 	public static final int MR_IID = 972; // número interno do MR
 	public static final String caminho = "fluxos_novos.txt";
