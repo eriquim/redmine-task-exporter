@@ -23,7 +23,7 @@ public class BaseCalculoController {
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("baseCalculo", new BaseCalculo("{}"));
+        model.addAttribute("baseCalculo", new BaseCalculo());
         return "base-calculo/form";
     }
 
@@ -41,10 +41,6 @@ public class BaseCalculoController {
     @PostMapping
     public String save(@ModelAttribute BaseCalculo baseCalculo, RedirectAttributes redirectAttributes) {
         try {
-            // Basic validation to ensure "dados" is somewhat valid JSON or empty
-            if (baseCalculo.getDados() == null || baseCalculo.getDados().trim().isEmpty()) {
-                baseCalculo.setDados("{}");
-            }
             repository.save(baseCalculo);
             redirectAttributes.addFlashAttribute("success", "Registro salvo com sucesso.");
         } catch (Exception e) {

@@ -24,8 +24,10 @@ import br.jus.tjce.releasecontroller.redmine.dom.IssueChild;
 import br.jus.tjce.releasecontroller.redmine.dom.User;
 import br.jus.tjce.releasecontroller.redmine.dom.Project;
 import br.jus.tjce.releasecontroller.redmine.dom.Tracker;
+import br.jus.tjce.releasecontroller.redmine.dom.Status;
 import br.jus.tjce.releasecontroller.redmine.dom.ProjectsResponse;
 import br.jus.tjce.releasecontroller.redmine.dom.TrackersResponse;
+import br.jus.tjce.releasecontroller.redmine.dom.StatusesResponse;
 import br.jus.tjce.releasecontroller.util.StringUtil;
 
 @Service
@@ -205,11 +207,17 @@ public class RedmineTaskService {
 		}
 	}
 
-	public List<Issue> buscarTarefas(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
+	public List<Issue> buscarTarefas(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim) {
 		List<Issue> todasTarefas = new ArrayList<>();
 		try {
 			StringBuilder baseBuilder = new StringBuilder(Parametros.URL_BASE);
-			baseBuilder.append("/issues.json?status_id=*&limit=100");
+			baseBuilder.append("/issues.json?include=relations&limit=100");
+			
+			if (statusId != null) {
+				baseBuilder.append("&status_id=").append(statusId);
+			} else {
+				baseBuilder.append("&status_id=*");
+			}
 			
 			if (projetoId != null) {
 				baseBuilder.append("&project_id=").append(projetoId);
@@ -279,8 +287,32 @@ public class RedmineTaskService {
 		return new ArrayList<>();
 	}
 
-	public void imprimirBuscarTarefas(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
-		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+	public List<Status> buscarStatuses() {
+		try {
+			String urlStr = Parametros.URL_BASE + "/issue_statuses.json";
+			Optional<StatusesResponse> response = consumirEndPointRedmine(urlStr, StatusesResponse.class, false);
+			if (response.isPresent() && response.get().getIssueStatuses() != null) {
+				return response.get().getIssueStatuses();
+			}
+		} catch (IOException e) {
+			System.out.println("Erro ao buscar lista de statuses: " + e.getMessage());
+		}
+		return new ArrayList<>();
+	}
+
+	private String obterValorCampoCustomizado(Issue tarefa, String nomeCampo) {
+		if (tarefa.getCustomFields() != null) {
+			for (CustomField field : tarefa.getCustomFields()) {
+				if (field.getName() != null && field.getName().contains(nomeCampo) && field.getValue() != null) {
+					return field.getValue().toString();
+				}
+			}
+		}
+		return "";
+	}
+
+	public void imprimirBuscarTarefas(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, statusId, dataCriacaoInicio, dataCriacaoFim);
 		for (Issue tarefa : tarefas) {
 			try {
 				String linha = gerarLinha(tarefa, 0);
@@ -293,18 +325,42 @@ public class RedmineTaskService {
 		}
 	}
 
-	public void exportarTarefasParaCSV(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim, String caminhoArquivo) {
-		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+	public void exportarTarefasParaCSV(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim, String caminhoArquivo) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, statusId, dataCriacaoInicio, dataCriacaoFim);
 		try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(caminhoArquivo))) {
-			writer.println("ID;Projeto;Tracker;Status;Assunto;Data de Criação");
+			writer.println("ID;Tarefa Relacionada;Tipo_demanda_relacionada;Status_relacionada;Projeto;Tipo_demanda;Status;Assunto;Autor;Data de Criação;[DEVPJE] - Quantidade;[DEVPJE] - Atividade Catálogo;[DEVPJE] Complexidade");
 			for (Issue tarefa : tarefas) {
 				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
+				
+				String tarefaRelacionada = "";
+				String tipoDemandaRelacionada = "";
+				String statusRelacionada = "";
+				if (tarefa.getRelations() != null && !tarefa.getRelations().isEmpty()) {
+					br.jus.tjce.releasecontroller.redmine.dom.Relation rel = tarefa.getRelations().get(0);
+					Integer relId = tarefa.getId().equals(rel.getIssueId()) ? rel.getIssueToId() : rel.getIssueId();
+					tarefaRelacionada = relId != null ? relId.toString() : "";
+					if (relId != null) {
+						Optional<Issue> related = obterTarefa(relId);
+						if (related.isPresent() && related.get().getTracker() != null) {
+							tipoDemandaRelacionada = related.get().getTracker().getName();
+						}
+						if (related.isPresent() && related.get().getStatus() != null) {
+							statusRelacionada = related.get().getStatus().getName();
+						}
+					}
+				}
+				
 				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
 				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
 				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
 				String assunto = tarefa.getSubject() != null ? tarefa.getSubject().replace(";", ",") : "";
+				String autor = tarefa.getAuthor() != null ? tarefa.getAuthor().getName() : "";
 				String dataCriacao = tarefa.getCreatedOn() != null ? tarefa.getCreatedOn().toString() : "";
-				writer.println(String.format("%s;%s;%s;%s;%s;%s", id, projeto, tracker, status, assunto, dataCriacao));
+				String qte = obterValorCampoCustomizado(tarefa, "Quantidade");
+				String atividade = obterValorCampoCustomizado(tarefa, "Atividade Catálogo");
+				String complexidade = obterValorCampoCustomizado(tarefa, "Complexidade");
+				
+				writer.println(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s", id, tarefaRelacionada, tipoDemandaRelacionada,statusRelacionada, projeto, tracker, status, assunto,autor, dataCriacao, qte, atividade, complexidade));
 			}
 			System.out.println("Arquivo CSV gerado com sucesso em: " + caminhoArquivo);
 		} catch (IOException e) {
@@ -312,20 +368,39 @@ public class RedmineTaskService {
 			e.printStackTrace();
 		}
 	}
-	public byte[] exportarTarefasParaCSVBytes(Integer projetoId, Integer tipoId, String dataCriacaoInicio, String dataCriacaoFim) {
-		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, dataCriacaoInicio, dataCriacaoFim);
+	public byte[] exportarTarefasParaCSVBytes(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim) {
+		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, statusId, dataCriacaoInicio, dataCriacaoFim);
 		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 			 java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
 			
-			writer.println('\uFEFF' + "ID;Projeto;Tracker;Status;Assunto;Data de Criação"); // BOM for excel
+			writer.println('\uFEFF' + "ID;Tarefa Relacionada;Tipo_demanda_relacionada;Projeto;Tipo_demanda;Status;Assunto;Data de Criação;[DEVPJE] - Quantidade;[DEVPJE] - Atividade Catálogo;[DEVPJE] Complexidade"); // BOM for excel
 			for (Issue tarefa : tarefas) {
 				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
+				
+				String tarefaRelacionada = "";
+				String tipoDemandaRelacionada = "";
+				if (tarefa.getRelations() != null && !tarefa.getRelations().isEmpty()) {
+					br.jus.tjce.releasecontroller.redmine.dom.Relation rel = tarefa.getRelations().get(0);
+					Integer relId = tarefa.getId().equals(rel.getIssueId()) ? rel.getIssueToId() : rel.getIssueId();
+					tarefaRelacionada = relId != null ? relId.toString() : "";
+					if (relId != null) {
+						Optional<Issue> related = obterTarefa(relId);
+						if (related.isPresent() && related.get().getTracker() != null) {
+							tipoDemandaRelacionada = related.get().getTracker().getName();
+						}
+					}
+				}
+				
 				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
 				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
 				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
 				String assunto = tarefa.getSubject() != null ? tarefa.getSubject().replace(";", ",") : "";
 				String dataCriacao = tarefa.getCreatedOn() != null ? tarefa.getCreatedOn().toString() : "";
-				writer.println(String.format("%s;%s;%s;%s;%s;%s", id, projeto, tracker, status, assunto, dataCriacao));
+				String qte = obterValorCampoCustomizado(tarefa, "Quantidade");
+				String atividade = obterValorCampoCustomizado(tarefa, "Atividade Catálogo");
+				String complexidade = obterValorCampoCustomizado(tarefa, "Complexidade");
+				
+				writer.println(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s", id, tarefaRelacionada, tipoDemandaRelacionada, projeto, tracker, status, assunto, dataCriacao, qte, atividade, complexidade));
 			}
 			writer.flush();
 			return out.toByteArray();

@@ -77,6 +77,12 @@ public class Issue {
     @JsonProperty("closed_on")
     private OffsetDateTime closedOn;
 
+    @JsonProperty("parent")
+    private Parent parent;
+
+    @JsonProperty("relations")
+    private List<Relation> relations;
+
     private List<IssueChild> children;
 
     public Integer getId() { return id; }
@@ -144,6 +150,12 @@ public class Issue {
 
     public OffsetDateTime getClosedOn() { return closedOn; }
     public void setClosedOn(OffsetDateTime closedOn) { this.closedOn = closedOn; }
+
+    public Parent getParent() { return parent; }
+    public void setParent(Parent parent) { this.parent = parent; }
+
+    public List<Relation> getRelations() { return relations; }
+    public void setRelations(List<Relation> relations) { this.relations = relations; }
 
     public List<IssueChild> getChildren() { return children; }
     public void setChildren(List<IssueChild> children) { this.children = children; }

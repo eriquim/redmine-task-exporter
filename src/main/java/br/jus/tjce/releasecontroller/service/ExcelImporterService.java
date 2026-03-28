@@ -2,7 +2,6 @@ package br.jus.tjce.releasecontroller.service;
 
 import br.jus.tjce.releasecontroller.model.BaseCalculo;
 import br.jus.tjce.releasecontroller.repository.BaseCalculoRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,18 +10,13 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class ExcelImporterService {
 
     @Autowired
     private BaseCalculoRepository repository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     public void importData(String filePath) {
         if (repository.count() > 0) {
@@ -54,34 +48,47 @@ public class ExcelImporterService {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                Map<String, Object> rowData = new HashMap<>();
+                BaseCalculo base = new BaseCalculo();
+
                 for (int j = 0; j < headers.size(); j++) {
                     Cell cell = row.getCell(j);
-                    if (cell != null) {
-                        switch (cell.getCellType()) {
-                            case STRING:
-                                rowData.put(headers.get(j), cell.getStringCellValue());
-                                break;
-                            case NUMERIC:
-                                if (DateUtil.isCellDateFormatted(cell)) {
-                                    rowData.put(headers.get(j), cell.getDateCellValue());
-                                } else {
-                                    rowData.put(headers.get(j), cell.getNumericCellValue());
-                                }
-                                break;
-                            case BOOLEAN:
-                                rowData.put(headers.get(j), cell.getBooleanCellValue());
-                                break;
-                            default:
-                                rowData.put(headers.get(j), cell.toString());
-                        }
+                    if (cell == null) continue;
+
+                    String header = headers.get(j);
+                    String strVal = "";
+                    Double numVal = null;
+                    
+                    if (cell.getCellType() == CellType.STRING) {
+                        strVal = cell.getStringCellValue();
+                    } else if (cell.getCellType() == CellType.NUMERIC) {
+                        numVal = cell.getNumericCellValue();
+                        strVal = String.valueOf(numVal);
                     } else {
-                        rowData.put(headers.get(j), null);
+                        strVal = cell.toString();
+                    }
+
+                    if (header.equalsIgnoreCase("Grupo de Atividades")) {
+                        base.setGrupoAtividades(strVal);
+                    } else if (header.equalsIgnoreCase("Atividade")) {
+                        base.setAtividade(strVal);
+                    } else if (header.equalsIgnoreCase("Unidade de medida")) {
+                        base.setUnidadeMedida(strVal);
+                    } else if (header.equalsIgnoreCase("Qauntidade base UST") || header.equalsIgnoreCase("Quantidade base UST")) {
+                        base.setQuantidadeBaseUst(numVal != null ? numVal : (!strVal.isEmpty() ? Double.valueOf(strVal) : null));
+                    } else if (header.equalsIgnoreCase("Produto Final")) {
+                        base.setProdutoFinal(strVal);
+                    } else if (header.equalsIgnoreCase("Perfil")) {
+                        base.setPerfil(strVal);
+                    } else if (header.equalsIgnoreCase("Valor")) {
+                        base.setValor(numVal != null ? numVal : (!strVal.isEmpty() ? Double.valueOf(strVal) : null));
+                    } else if (header.equalsIgnoreCase("Atributo")) {
+                        base.setAtributo(strVal);
+                    } else if (header.equalsIgnoreCase("Referencia Calculo")) {
+                        base.setReferenciaCalculo(strVal);
                     }
                 }
 
-                String jsonDados = objectMapper.writeValueAsString(rowData);
-                entitiesToSave.add(new BaseCalculo(jsonDados));
+                entitiesToSave.add(base);
             }
 
             repository.saveAll(entitiesToSave);
