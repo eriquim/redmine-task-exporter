@@ -325,16 +325,17 @@ public class RedmineTaskService {
 		}
 	}
 
-	public void exportarTarefasParaCSV(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim, String caminhoArquivo) {
+	public byte[] exportarTarefasParaCSVBytes(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim) {
 		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, statusId, dataCriacaoInicio, dataCriacaoFim);
-		try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(caminhoArquivo))) {
-			writer.println("ID;Tarefa Relacionada;Tipo_demanda_relacionada;Status_relacionada;Projeto;Tipo_demanda;Status;Assunto;Autor;Data de Criação;[DEVPJE] - Quantidade;[DEVPJE] - Atividade Catálogo;[DEVPJE] Complexidade");
+		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+			 java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
+			writer.println('\uFEFF' + "ID;Tarefa Relacionada;Tipo_demanda_relacionada;Status_relacionada;Tipo_atividade_relacionada;Projeto;Tipo_demanda;Status;Assunto; Autor;Data de Criação;[DEVPJE] - Quantidade;[DEVPJE] - Atividade Catálogo;[DEVPJE] Complexidade"); // BOM for excel
 			for (Issue tarefa : tarefas) {
 				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
-				
 				String tarefaRelacionada = "";
 				String tipoDemandaRelacionada = "";
 				String statusRelacionada = "";
+				String tipoAtividadeRelacionada = "";
 				if (tarefa.getRelations() != null && !tarefa.getRelations().isEmpty()) {
 					br.jus.tjce.releasecontroller.redmine.dom.Relation rel = tarefa.getRelations().get(0);
 					Integer relId = tarefa.getId().equals(rel.getIssueId()) ? rel.getIssueToId() : rel.getIssueId();
@@ -342,14 +343,13 @@ public class RedmineTaskService {
 					if (relId != null) {
 						Optional<Issue> related = obterTarefa(relId);
 						if (related.isPresent() && related.get().getTracker() != null) {
-							tipoDemandaRelacionada = related.get().getTracker().getName();
-						}
-						if (related.isPresent() && related.get().getStatus() != null) {
+							tipoDemandaRelacionada = related.get().getTracker().getName();	
 							statusRelacionada = related.get().getStatus().getName();
+							tipoAtividadeRelacionada = obterValorCampoCustomizado(related.get(), "Tipo Atividade");
 						}
+
 					}
 				}
-				
 				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
 				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
 				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
@@ -360,47 +360,7 @@ public class RedmineTaskService {
 				String atividade = obterValorCampoCustomizado(tarefa, "Atividade Catálogo");
 				String complexidade = obterValorCampoCustomizado(tarefa, "Complexidade");
 				
-				writer.println(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s", id, tarefaRelacionada, tipoDemandaRelacionada,statusRelacionada, projeto, tracker, status, assunto,autor, dataCriacao, qte, atividade, complexidade));
-			}
-			System.out.println("Arquivo CSV gerado com sucesso em: " + caminhoArquivo);
-		} catch (IOException e) {
-			System.out.println("Erro ao gerar arquivo CSV: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
-	public byte[] exportarTarefasParaCSVBytes(Integer projetoId, Integer tipoId, Integer statusId, String dataCriacaoInicio, String dataCriacaoFim) {
-		List<Issue> tarefas = buscarTarefas(projetoId, tipoId, statusId, dataCriacaoInicio, dataCriacaoFim);
-		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-			 java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
-			
-			writer.println('\uFEFF' + "ID;Tarefa Relacionada;Tipo_demanda_relacionada;Projeto;Tipo_demanda;Status;Assunto;Data de Criação;[DEVPJE] - Quantidade;[DEVPJE] - Atividade Catálogo;[DEVPJE] Complexidade"); // BOM for excel
-			for (Issue tarefa : tarefas) {
-				String id = tarefa.getId() != null ? tarefa.getId().toString() : "";
-				
-				String tarefaRelacionada = "";
-				String tipoDemandaRelacionada = "";
-				if (tarefa.getRelations() != null && !tarefa.getRelations().isEmpty()) {
-					br.jus.tjce.releasecontroller.redmine.dom.Relation rel = tarefa.getRelations().get(0);
-					Integer relId = tarefa.getId().equals(rel.getIssueId()) ? rel.getIssueToId() : rel.getIssueId();
-					tarefaRelacionada = relId != null ? relId.toString() : "";
-					if (relId != null) {
-						Optional<Issue> related = obterTarefa(relId);
-						if (related.isPresent() && related.get().getTracker() != null) {
-							tipoDemandaRelacionada = related.get().getTracker().getName();
-						}
-					}
-				}
-				
-				String projeto = tarefa.getProject() != null ? tarefa.getProject().getName() : "";
-				String tracker = tarefa.getTracker() != null ? tarefa.getTracker().getName() : "";
-				String status = tarefa.getStatus() != null ? tarefa.getStatus().getName() : "";
-				String assunto = tarefa.getSubject() != null ? tarefa.getSubject().replace(";", ",") : "";
-				String dataCriacao = tarefa.getCreatedOn() != null ? tarefa.getCreatedOn().toString() : "";
-				String qte = obterValorCampoCustomizado(tarefa, "Quantidade");
-				String atividade = obterValorCampoCustomizado(tarefa, "Atividade Catálogo");
-				String complexidade = obterValorCampoCustomizado(tarefa, "Complexidade");
-				
-				writer.println(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s", id, tarefaRelacionada, tipoDemandaRelacionada, projeto, tracker, status, assunto, dataCriacao, qte, atividade, complexidade));
+				writer.println(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s", id, tarefaRelacionada, tipoDemandaRelacionada,statusRelacionada,tipoAtividadeRelacionada, projeto, tracker, status, assunto, autor, dataCriacao, qte, atividade, complexidade));
 			}
 			writer.flush();
 			return out.toByteArray();
